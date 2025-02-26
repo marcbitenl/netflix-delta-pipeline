@@ -1,3 +1,4 @@
 # Netflix-Delta-Pipeline
 
-![image](https://github.com/user-attachments/assets/3ac3c629-4aeb-4c93-9173-cebe7c231d8b)
+![image](https://github.com/user-attachments/assets/82981dad-da4d-4b56-b2f9-b63ecfebab4b)
+
