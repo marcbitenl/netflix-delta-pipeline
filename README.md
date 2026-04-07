@@ -1,62 +1,73 @@
 
-# 📊 Netflix Data Pipeline
-Este repositório contém um pipeline de dados altamente escalável, automatizado e governado, projetado para garantir ingestão, processamento e transformação eficiente dos dados da Netflix. Ele combina tecnologias modernas como Azure Data Factory, Databricks, Delta Live Tables (DLT) e Unity Catalog, proporcionando um ambiente de alta performance, confiabilidade e governança de dados.
+# 📊 End-to-End Netflix Data Pipeline (Azure + Databricks)
+This repository contains a highly scalable, automated, and governed data pipeline, designed to ensure efficient ingestion, processing, and transformation of Netflix data. It combines modern technologies such as Azure Data Factory, Databricks, Delta Live Tables (DLT), and Unity Catalog, providing a high-performance, reliable, and well-governed data environment.
 
-🚀 Destaques e Benefícios do Projeto
+## 🧰 Tech Stack
 
-- ✅ Governança de Dados Centralizada: Utiliza Unity Catalog para controle granular de permissões.
-  
-- ✅ Data Quality & Observability: Delta Live Tables (DLT) assegura a qualidade dos dados por meio de regras de validação embutidas e monitoramento contínuo.
-  
-- ✅ Automação Completa: Jobs no Databricks orquestram todas as etapas do pipeline.
-  
-- ✅ Escalabilidade e Eficiência: O uso de AutoLoader e Delta Lake otimiza a ingestão e o armazenamento, reduzindo custos e tempo de processamento.
-  
-- ✅ Flexibilidade e Confiabilidade: O pipeline suporta processamento batch e streaming, permitindo ingestão em tempo quase real.
+- Azure Data Factory (ADF)
+- Azure Databricks
+- PySpark
+- Delta Lake
+- Delta Live Tables (DLT)
+- Unity Catalog
+- ADLS Gen2
 
-## 📌 Arquitetura do Projeto
-O pipeline segue a arquitetura **Bronze - Silver - Gold**, utilizando ferramentas modernas como **Azure Data Factory (ADF)** para ingestão, **AutoLoader para processamento incremental**, **Jobs no Databricks** para orquestração e **DLT para automação e controle de qualidade**.
+
+🚀 Project Highlights and Benefits
+
+- ✅ Centralized Data Governance: Uses Unity Catalog for granular access control.
+  
+- ✅ Data Quality & Observability: Delta Live Tables (DLT) ensures data quality through built-in validation rules and continuous monitoring.
+  
+- ✅ Full Automation: Databricks Jobs orchestrate all stages of the pipeline.
+  
+- ✅ Scalability and Efficiency: The use of AutoLoader and Delta Lake optimizes ingestion and storage, reducing costs and processing time.
+  
+- ✅ Flexibility and Reliability: The pipeline supports batch and streaming processing, enabling near real-time ingestion.
+
+## 📌 Project Architecture
+The pipeline follows the **Bronze - Silver - Gold** architecture, using modern tools such as **Azure Data Factory (ADF)** for ingestion, **AutoLoader for incremental processing**, **Databricks Jobs** for orchestration, and **DLT for automation and data quality control**.
 
 ![image](https://github.com/user-attachments/assets/82981dad-da4d-4b56-b2f9-b63ecfebab4b)
 
-### 🔄 Fluxo de Dados
+### 🔄 Data Flow
 
-1. **Azure Data Factory (ADF)** coleta dados do GitHub e os armazena no **Azure Data Lake Gen2**.
-2. **AutoLoader no Databricks** lê e processa dados novos de forma incremental para a camada **Bronze**.
-3. **Transformação na camada Silver**: limpeza, padronização e enriquecimento dos dados.
-4. **Delta Live Tables (DLT)** estrutura e valida os dados na camada **Gold**, garantindo qualidade e conformidade.
-5. **Unity Catalog** gerencia as tabelas e os acessos para controle e governança de dados centralizada.
-6. **Os dados processados são disponibilizados para análise** em **Power BI** e **Azure Synapse Analytics**.
-
----
-
-## 🔄 **Integração com Azure Data Factory**
-
-- **Ingestão:** O ADF busca arquivos CSV do GitHub e carrega para o **Data Lake Gen2**.
-- **Orquestração:** Dispara os Jobs do Databricks para processar os dados.
-- **Monitoramento:** Configurado para alertas de erro via email.
-- **Automação do pipeline**, garantindo execução otimizada.
+1. **Azure Data Factory (ADF)** collects data from GitHub and stores it in **Azure Data Lake Gen2**.
+2. **AutoLoader in Databricks** reads and processes new data incrementally into the **Bronze** layer.
+3. **Transformation in the Silver layer**: data cleansing, standardization, and enrichment.
+4. **Delta Live Tables (DLT)** structures and validates data in the **Gold** layer, ensuring quality and compliance.
+5. **Unity Catalog** manages tables and access for centralized data governance.
+6. **Processed data is made available for analysis** in **Power BI** and **Azure Synapse Analytics**.
 
 ---
-## 🏗️ **Unity Catalog e Localizações Externas**
 
-- O **Unity Catalog** centraliza a governança de dados e fornece controle unificado de acessos.
-- Todas as tabelas são gerenciadas dentro do metastore `netflix_unity_metastore`.
-- As localizações externas foram configuradas para armazenar os dados no **Azure Data Lake Gen2**, garantindo segurança e rastreabilidade.
+## 🔄 **Integration with Azure Data Factory**
+
+- **Ingestion:** ADF retrieves CSV files from GitHub and loads them into **Data Lake Gen2**.
+- **Orchestration:** Triggers Databricks Jobs to process the data.
+- **Monitoring:** Configured for error alerts via email.
+- **Pipeline automation**, ensuring optimized execution.
+
+---
+## 🏗️ **Unity Catalog and External Locations**
+
+- **Unity Catalog** centralizes data governance and provides unified access control.
+- All tables are managed within the `netflix_unity_metastore`.
+- External locations are configured to store data in **Azure Data Lake Gen2**, ensuring security and traceability.
 
 ![image](https://github.com/user-attachments/assets/da428e91-2694-4991-ac8d-82378e3e628d)
 
 
-## 🚀 Notebooks e Processamento de Dados
+## 🚀 Notebooks and Data Processing
 
-### 1️⃣ **Camada Bronze - AutoLoader**
+### 1️⃣ **Bronze Layer - AutoLoader**
 
-Arquivo: `1_autoloader.ipynb`
+File: `1_autoloader.ipynb`
 
-- O **AutoLoader** faz a ingestão automática e incremental de arquivos CSV.
-- Permite escalabilidade para grandes volumes de dados e reduz custos operacionais.
-- Detecta automaticamente novos arquivos sem necessidade de monitoramento manual.
-- Os dados são armazenados na camada **Bronze** no Data Lake Gen2.
+- **AutoLoader** performs automatic and incremental ingestion of CSV files.
+- Enables scalability for large data volumes and reduces operational costs.
+- Automatically detects new files without the need for manual monitoring.
+- Data is stored in the **Bronze** layer in Data Lake Gen2.
 
 ```python
 checkpoint_location = "abfss://container@storageaccountl.dfs.core.windows.net/checkpoint"
@@ -67,13 +78,13 @@ df = spark.readStream\
     .load('abfss://raw@storageaccountl.dfs.core.windows.net')
 ```
 
-### 2️⃣ **Camada Silver - Transformações**
+### 2️⃣ **Silver Layer - Transformations**
 
-Arquivo: `2_silver.ipynb`
+File: `2_silver.ipynb`
 
-- Realiza limpeza, tratamento de valores nulos e ajuste de tipos de dados.
-- Criação de colunas derivadas (`Shorttitle`, `type_flag`, etc.).
-- Armazena os dados refinados na camada **Silver** no formato **Delta**.
+- Performs data cleansing, null handling, and data type adjustments.
+- Creation of derived columns (`Shorttitle`, `type_flag`, etc.).
+- Stores refined data in the **Silver** layer in **Delta** format.
 
 ```python
 df = df.withColumn('Shorttitle',split(col('title'),':')[0])
@@ -84,49 +95,42 @@ df.write.format('delta')\
      .option('path', 'abfss://container@storageaccountl.dfs.core.windows.net/silver/netflix_titles')\
      .save()
 ```
-## 🏗️ **Jobs do Databricks**
+## 🏗️ **Databricks Jobs**
 
-Os **Jobs** no Databricks garantem a automação do pipeline de dados.
+**Jobs** in Databricks ensure the automation of the data pipeline.
 
-### 🔹 **Job 1 - Processamento Silver** (`job_silver.json`)
-- Executa `3_lookupnotebook.ipynb` para buscar metadados.
-- Usa `2_silver.ipynb` para processar diferentes tabelas **Silver** com parâmetros dinâmicos.
-- Executa todas as tabelas do array `my_arr`.
-- ![image](https://github.com/user-attachments/assets/e1e5c00b-5880-4568-872f-48517bd75789)
+### 🔹 **Job 1 - Silver Processing** (`job_silver.json`)
+- Executes `3_lookupnotebook.ipynb` to retrieve metadata.
+- Uses `2_silver.ipynb` to process different **Silver** tables with dynamic parameters.
+- Executes all tables from the `my_arr` array.
 
-### 🔹 **Job 2 - Verificação Condicional**
-- Executa `5_lookupNotebook.ipynb` para verificar a data.
-- Dependendo do dia da semana, decide qual notebook executar (**4_Silver.ipynb** ou **6_false_notebook.ipynb**).
-- ![image](https://github.com/user-attachments/assets/39d092bb-1fdc-471e-a4e9-2ade7e638d86)
+![image](https://github.com/user-attachments/assets/e1e5c00b-5880-4568-872f-48517bd75789)
 
-### 3️⃣ **Camada Gold - Delta Live Tables (DLT)**
+### 🔹 **Job 2 - Conditional Check**
+- Executes `5_lookupNotebook.ipynb` to check the date.
+- Depending on the day of the week, decides which notebook to execute (**4_Silver.ipynb** or **6_false_notebook.ipynb**).
+
+![image](https://github.com/user-attachments/assets/39d092bb-1fdc-471e-a4e9-2ade7e638d86)
+
+### 3️⃣ **Gold Layer - Delta Live Tables (DLT)**
 
 ![image](https://github.com/user-attachments/assets/c810bd87-00bf-47a6-bc81-3e2ff1652239)
 
-Arquivo: `7_DLT_Notebook.ipynb`
+File: `7_DLT_Notebook.ipynb`
 
-- **DLT transforma a camada Silver na Gold, aplicando validações e garantindo Data Quality.**
-- **Regras de qualidade são aplicadas automaticamente**, rejeitando dados inválidos e garantindo consistência.
-- **Escalabilidade automática** para grandes volumes de dados.
-- **Governança de dados** com rastreamento de mudanças.
-
-
-O uso de Delta Live Tables (DLT) torna este pipeline altamente eficiente, garantindo qualidade de dados desde a ingestão até a camada de consumo.
-
-#### **Vantagens do Delta Live Tables (DLT):**
-- ✅ **Automação total do pipeline de dados** – não precisa gerenciar tarefas manualmente.
-- ✅ **Verificação e validação de qualidade embutida** com `@dlt.expect_all_or_drop()`.
-- ✅ **Histórico completo das alterações** – facilita auditorias e conformidade.
-- ✅ **Execução otimizada e escalável**, reduzindo custos operacionais.
+- **DLT transforms the Silver layer into Gold, applying validations and ensuring Data Quality.**
+- **Quality rules are automatically applied**, rejecting invalid data and ensuring consistency.
+- **Automatic scalability** for large data volumes.
+- **Data governance** with change tracking.
 
 
-A escalabilidade e o processamento otimizado do Databricks reduzem o tempo de execução e otimizam os custos de armazenamento e computação.Com rastreabilidade total das transformações, o pipeline mantém um histórico completo das mudanças nos dados, facilitando auditorias e análises.
+The use of Delta Live Tables (DLT) makes this pipeline highly efficient, ensuring data quality from ingestion to the consumption layer.
+
+#### **Advantages of Delta Live Tables (DLT):**
+- ✅ **Full automation of the data pipeline** – no need to manually manage tasks.
+- ✅ **Built-in data validation and quality checks** using `@dlt.expect_all_or_drop()`.
+- ✅ **Complete history of changes** – simplifies auditing and compliance.
+- ✅ **Optimized and scalable execution**, reducing operational costs.
 
 
-
-
-
-
-
-
-
+The scalability and optimized processing of Databricks reduce execution time and optimize storage and compute costs. With full traceability of transformations, the pipeline maintains a complete history of data changes, facilitating auditing and analysis.
