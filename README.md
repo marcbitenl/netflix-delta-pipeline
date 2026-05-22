@@ -1,268 +1,153 @@
-# Spotify Lakehouse Platform
+# 📊 End-to-End Netflix Data Pipeline (Azure + Databricks)
+This repository contains a highly scalable, automated, and governed data pipeline, designed to ensure efficient ingestion, processing, and transformation of Netflix data. It combines modern technologies such as Azure Data Factory, Databricks, Delta Live Tables (DLT), and Unity Catalog, providing a high-performance, reliable, and well-governed data environment.
 
-Metadata-driven ingestion platform built on Azure and Databricks focused on incremental processing, orchestration reliability and scalable downstream transformations.
+## 🧰 Tech Stack
 
-The platform combines Azure Data Factory for CDC-based extraction orchestration with Databricks Auto Loader and Delta Live Tables for incremental downstream processing.
+- Azure Data Factory (ADF)
+- Azure Databricks
+- PySpark
+- Delta Lake
+- Delta Live Tables (DLT)
+- Unity Catalog
+- ADLS Gen2
 
----
 
-# Architecture Overview
+🚀 Project Highlights and Benefits
 
-<img width="2302" height="1528" alt="architecture" src="https://github.com/user-attachments/assets/1d6a2816-e5fb-4764-95e7-5972a3c14ce3" />
+- ✅ Centralized Data Governance: Uses Unity Catalog for granular access control.
 
----
+- ✅ Data Quality & Observability: Delta Live Tables (DLT) ensures data quality through built-in validation rules and continuous monitoring.
 
-# Platform Stack
+- ✅ Full Automation: Databricks Jobs orchestrate all stages of the pipeline.
 
-| Domain | Technology |
-|---|---|
-| Source | Azure SQL Database |
-| Orchestration | Azure Data Factory |
-| Storage | ADLS Gen2 |
-| Processing | Azure Databricks |
-| Streaming | Auto Loader + Delta Live Tables |
-| Format | Delta Lake / Parquet |
-| Transformations | PySpark / SQL |
-| Monitoring | Azure Functions |
-| CI/CD | Databricks Asset Bundles |
-| Source Control | GitHub |
+- ✅ Scalability and Efficiency: The use of AutoLoader and Delta Lake optimizes ingestion and storage, reducing costs and processing time.
 
----
+- ✅ Flexibility and Reliability: The pipeline supports batch and streaming processing, enabling near real-time ingestion.
 
-# Ingestion Framework
+## 📌 Project Architecture
+The pipeline follows the **Bronze - Silver - Gold** architecture, using modern tools such as **Azure Data Factory (ADF)** for ingestion, **AutoLoader for incremental processing**, **Databricks Jobs** for orchestration, and **DLT for automation and data quality control**.
 
-The ingestion layer was designed as a reusable orchestration framework inside Azure Data Factory.
+![image](https://github.com/user-attachments/assets/82981dad-da4d-4b56-b2f9-b63ecfebab4b)
 
-Instead of maintaining isolated pipelines per entity, ingestion is dynamically driven through metadata-based orchestration and CDC watermark persistence.
+### 🔄 Data Flow
 
-Example ingestion payload:
-
-```json
-[
-  {
-    "schema": "dbo",
-    "table": "DimUser",
-    "cdc_col": "updated_at",
-    "from_date": ""
-  },
-  {
-    "schema": "dbo",
-    "table": "FactStream",
-    "cdc_col": "stream_timestamp",
-    "from_date": ""
-  }
-]
-```
-
-The orchestration dynamically iterates through entities using a `ForEach` activity and parameterized extraction logic.
+1. **Azure Data Factory (ADF)** collects data from GitHub and stores it in **Azure Data Lake Gen2**.
+2. **AutoLoader in Databricks** reads and processes new data incrementally into the **Bronze** layer.
+3. **Transformation in the Silver layer**: data cleansing, standardization, and enrichment.
+4. **Delta Live Tables (DLT)** structures and validates data in the **Gold** layer, ensuring quality and compliance.
+5. **Unity Catalog** manages tables and access for centralized data governance.
+6. **Processed data is made available for analysis** in **Power BI** and **Azure Synapse Analytics**.
 
 ---
 
-# Incremental CDC Strategy
+## 🔄 **Integration with Azure Data Factory**
 
-Azure Data Factory is responsible for source-level incremental consistency.
-
-CDC state is persisted directly into the Data Lake using JSON watermark files.
-
-Execution flow:
-
-```text
-1. Read watermark
-2. Extract incremental delta
-3. Persist parquet into ADLS
-4. Calculate latest CDC value
-5. Update watermark
-```
-
-Dynamic extraction query:
-
-```sql
-SELECT *
-FROM @{item().schema}.@{item().table}
-WHERE @{item().cdc_col} >
-'@{activity('LAST_CDC').output.value[0].cdc}'
-```
-
-This strategy enables scalable onboarding of new entities without orchestration redesign while avoiding unnecessary full-load extraction.
+- **Ingestion:** ADF retrieves CSV files from GitHub and loads them into **Data Lake Gen2**.
+- **Orchestration:** Triggers Databricks Jobs to process the data.
+- **Monitoring:** Configured for error alerts via email.
+- **Pipeline automation**, ensuring optimized execution.
 
 ---
+## 🏗️ **Unity Catalog and External Locations**
 
-# Raw Incremental Landing Zone
+- **Unity Catalog** centralizes data governance and provides unified access control.
+- All tables are managed within the `netflix_unity_metastore`.
+- External locations are configured to store data in **Azure Data Lake Gen2**, ensuring security and traceability.
 
-Incremental parquet files are persisted into ADLS Gen2 as immutable raw ingestion artifacts before downstream streaming processing.
+![image](https://github.com/user-attachments/assets/da428e91-2694-4991-ac8d-82378e3e628d)
 
-Characteristics:
 
-- Append-only ingestion
-- Incremental parquet generation
-- Historical traceability
-- Snappy compression
-- CDC watermark persistence
-- Partition-ready storage structure
+## 🚀 Notebooks and Data Processing
 
-Example:
+### 1️⃣ **Bronze Layer - AutoLoader**
 
-```text
-abfss://bronze@<storage-account>.dfs.core.windows.net/DimUser
-```
+File: `1_autoloader.ipynb`
 
----
-
-# Empty Load Optimization
-
-The orchestration includes a validation layer to avoid empty parquet persistence during incremental execution windows.
-
-Validation logic:
-
-```text
-IF dataRead > 0
-    Continue processing
-ELSE
-    Delete generated parquet
-```
-
-This prevents unnecessary storage growth and downstream processing overhead.
-
----
-
-# Hybrid Incremental Processing Model
-
-The platform adopts a hybrid incremental architecture.
-
-## Azure Data Factory Responsibilities
-
-- Source-level incremental extraction
-- CDC watermark persistence
-- Incremental parquet landing
-- Orchestration state management
-
-## Databricks Auto Loader Responsibilities
-
-Once parquet files arrive in ADLS, Databricks Auto Loader handles streaming-style incremental ingestion into downstream Delta tables.
-
-Auto Loader manages processing consistency using:
-
-- `cloudFiles`
-- checkpoint state management
-- incremental file discovery
-- streaming micro-batches
-
-Example:
+- **AutoLoader** performs automatic and incremental ingestion of CSV files.
+- Enables scalability for large data volumes and reduces operational costs.
+- Automatically detects new files without the need for manual monitoring.
+- Data is stored in the **Bronze** layer in Data Lake Gen2.
 
 ```python
-spark.readStream.format("cloudFiles")
+checkpoint_location = "abfss://container@storageaccountl.dfs.core.windows.net/checkpoint"
+@@ -67,13 +78,13 @@ df = spark.readStream\
+    .load('abfss://raw@storageaccountl.dfs.core.windows.net')
 ```
 
-This architecture separates extraction consistency from downstream file-processing consistency.
+### 2️⃣ **Silver Layer - Transformations**
 
----
+File: `2_silver.ipynb`
 
-# Streaming Processing Layer — Databricks
-
-Downstream workloads are executed inside Azure Databricks using Auto Loader, Delta Lake and Delta Live Tables.
-
-Core responsibilities:
-
-- Incremental streaming ingestion
-- Schema normalization
-- Standardization
-- Deduplication
-- Delta persistence
-- Layer promotion
----
-
-# Delta Live Tables (DLT)
-
-Delta Live Tables are used to simplify declarative streaming and batch transformations.
-
-Example:
+- Performs data cleansing, null handling, and data type adjustments.
+- Creation of derived columns (`Shorttitle`, `type_flag`, etc.).
+- Stores refined data in the **Silver** layer in **Delta** format.
 
 ```python
-import dlt
-
-@dlt.table
-def dim_user_stg():
-    return spark.readStream.table(
-        "spotify_cata.silver.dimuser"
-    )
+df = df.withColumn('Shorttitle',split(col('title'),':')[0])
+@@ -84,49 +95,42 @@ df.write.format('delta')\
+     .option('path', 'abfss://container@storageaccountl.dfs.core.windows.net/silver/netflix_titles')\
+     .save()
 ```
+## 🏗️ **Databricks Jobs**
 
-DLT capabilities leveraged by the platform:
 
-- Managed checkpoints
-- Pipeline lineage
-- Declarative transformations
-- Dependency resolution
-- Streaming orchestration
 
----
 
-# Silver Layer
 
-Validated and standardized Delta datasets generated through Auto Loader and DLT transformations.
 
-Responsibilities include:
 
-- Schema enforcement
-- Data quality validation
-- Deduplication
-- Standardization
-- Business rule enforcement
 
----
 
-# Gold Layer
 
-Curated Delta datasets generated from validated Silver transformations and downstream business aggregation logic.
 
----
 
-# Monitoring & Operational Alerting
 
-Operational observability is integrated directly into the orchestration layer.
 
-If pipeline execution fails:
+**Jobs** in Databricks ensure the automation of the data pipeline.
 
-1. ADF triggers a Web Activity
-2. Azure Functions receive the payload
-3. Automated notifications are dispatched
+### 🔹 **Job 1 - Silver Processing** (`job_silver.json`)
+- Executes `3_lookupnotebook.ipynb` to retrieve metadata.
+- Uses `2_silver.ipynb` to process different **Silver** tables with dynamic parameters.
+- Executes all tables from the `my_arr` array.
 
-Example payload:
 
-```json
-{
-  "pipeline_name": "@{pipeline().Pipeline}",
-  "pipeline_runId": "@{pipeline().RunId}"
-}
-```
 
-This approach simulates production-style operational monitoring patterns for orchestration reliability.
 
----
 
-# CI/CD & Deployment Lifecycle
+![image](https://github.com/user-attachments/assets/e1e5c00b-5880-4568-872f-48517bd75789)
 
-The platform follows a Git-based workflow where orchestration artifacts, notebooks and deployment definitions are version-controlled and promoted across environments.
+### 🔹 **Job 2 - Conditional Check**
+- Executes `5_lookupNotebook.ipynb` to check the date.
+- Depending on the day of the week, decides which notebook to execute (**4_Silver.ipynb** or **6_false_notebook.ipynb**).
 
-Deployment lifecycle components:
+![image](https://github.com/user-attachments/assets/39d092bb-1fdc-471e-a4e9-2ade7e638d86)
 
-- GitHub source control
-- Databricks Asset Bundles (DABs)
-- Bundle deployment through CLI
-- Environment promotion (Dev / Staging / Prod)
 
-Deployment example:
 
-```bash
-databricks bundle deploy
-```
 
-ADF orchestration artifacts are managed through Git integration and publish workflows aligned with Azure deployment practices.
 
----
 
-# Final Notes
 
-The platform was designed around reusable ingestion patterns, incremental processing and operational reliability using Azure and Databricks technologies.
 
-The architecture combines metadata-driven orchestration, CDC watermark persistence and streaming-style downstream processing through Auto Loader and Delta Live Tables.
+### 3️⃣ **Gold Layer - Delta Live Tables (DLT)**
+
+![image](https://github.com/user-attachments/assets/c810bd87-00bf-47a6-bc81-3e2ff1652239)
+
+File: `7_DLT_Notebook.ipynb`
+
+- **DLT transforms the Silver layer into Gold, applying validations and ensuring Data Quality.**
+- **Quality rules are automatically applied**, rejecting invalid data and ensuring consistency.
+- **Automatic scalability** for large data volumes.
+- **Data governance** with change tracking.
+
+
+The use of Delta Live Tables (DLT) makes this pipeline highly efficient, ensuring data quality from ingestion to the consumption layer.
+
+#### **Advantages of Delta Live Tables (DLT):**
+- ✅ **Full automation of the data pipeline** – no need to manually manage tasks.
+- ✅ **Built-in data validation and quality checks** using `@dlt.expect_all_or_drop()`.
+- ✅ **Complete history of changes** – simplifies auditing and compliance.
+- ✅ **Optimized and scalable execution**, reducing operational costs.
+
+
+The scalability and optimized processing of Databricks reduce execution time and optimize storage and compute costs. With full traceability of transformations, the pipeline maintains a complete history of data changes, facilitating auditing and analysis.
